@@ -8,19 +8,22 @@ import {
   InsertOneInDbSchema,
   schemaCollectionFactory,
   GetAllFromDb,
+  SchemaValidator,
 } from '@williamthome/lilidbschema-wrapper'
 
 const baseSchema = requiredSchema({
   id: privateString(),
 })
 const fooSchema = requiredSchema({
-  foo: requiredString(),
+  foo: requiredString({ mustBe: ['foo', 'bar'] }),
   ...baseSchema.wrapping,
 })
 const barSchema = requiredSchema({
   bar: requiredNumber(),
   ...baseSchema.wrapping,
 })
+
+const { validateSchema } = new SchemaValidator()
 
 type BaseSchema = typeof baseSchema
 type FooSchema = typeof fooSchema
@@ -46,9 +49,9 @@ const getAllFromDb = new GetAllFromDb<Collections>()
 const db = new MapDbWrapper<Collections>()
 
 async function run() {
-  await insertOneInDb.insertOne(
+  const insertFooResult = await insertOneInDb.insertOne(
     'fooCollection',
-    fooSchema,
+    validateSchema(fooSchema),
     db,
     baseParser<FooSchema>(),
     {
@@ -56,9 +59,9 @@ async function run() {
     },
   )
 
-  await insertOneInDb.insertOne(
+  const insertBarResult = await insertOneInDb.insertOne(
     'barCollection',
-    barSchema,
+    validateSchema(barSchema),
     db,
     baseParser<BarSchema>(),
     {
@@ -69,7 +72,7 @@ async function run() {
   const foos = await getAllFromDb.getAll('fooCollection', db)
   const bars = await getAllFromDb.getAll('barCollection', db)
 
-  console.log({ foos, bars })
+  console.log({ insertFooResult, insertBarResult, foos, bars })
 }
 
 run()

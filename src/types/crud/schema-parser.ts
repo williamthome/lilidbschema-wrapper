@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { IParser } from '@williamthome/lilidb-wrapper'
 import type {
   ExtractCompleteSchema,
